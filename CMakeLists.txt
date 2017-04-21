@@ -1,0 +1,25 @@
+cmake_minimum_required(VERSION 2.8.4)
+project(WiiMIDI)
+
+execute_process(COMMAND wx-config --cppflags OUTPUT_VARIABLE WX_CPP_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND wx-config --libs OUTPUT_VARIABLE WX_LIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "/home/landi/Dropbox/Workspace/WiiMIDI")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -D__LINUX_ALSA__ ${WX_CPP_FLAGS}")
+
+file(GLOB GUI_FILES "src/GUI/*.*")
+file(GLOB RACK_FILES "src/RackUnits/*.*")
+file(GLOB WINDOWTYPES_FILES "src/WindowTypes/*.*")
+file(GLOB WIIMIDI_FILES "src/Interface/*.*")
+file(GLOB MONITOR_FILES "src/Monitor/*.*")
+
+add_library(WiiMIDI_GUI src/WiiMIDI_GUI.h img/WM.xpm ${GUI_FILES})
+add_library(Monitor src/Monitor.h ${MONITOR_FILES})
+add_library(WindowTypes src/WindowTypes.h ${WINDOWTYPES_FILES})
+add_library(RackUnits src/RackUnits.h ${RACK_FILES})
+add_executable(WiiMIDI src/WiiMIDI.h ${WIIMIDI_FILES})
+add_dependencies(WiiMIDI WiiMIDI_GUI RackUnits WindowTypes Monitor)
+target_link_libraries(Monitor WiiMIDI_GUI)
+target_link_libraries(RackUnits WiiMIDI_GUI Monitor)
+target_link_libraries(WindowTypes WiiMIDI_GUI RackUnits)
+target_link_libraries(WiiMIDI ${WX_LIBS} WiiMIDI_GUI WindowTypes RackUnits Monitor -lrtmidi -lasound -lpthread -lxwiimote)
